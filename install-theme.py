@@ -111,11 +111,11 @@ function fish_prompt
     set_color {fg}
     echo -n (date "+%a %b %d %H:%M:%S")
     echo ""
-    echo -n "┌─💖ELMY0711💜─["
+    echo -n "╭─💖ELMY0711💜 ["
     echo -n (prompt_pwd)
     echo -n "]"
     echo ""
-    echo -n "└───╼ "
+    echo -n " ╰──╼ "
     set_color normal
 end
 
@@ -126,7 +126,7 @@ end
 
 
 def keyboard():
-    s = '''extra-keys=[["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls ","cd ","clear ","ENTER","ping ","git pull ","rm -rf ","CTRL+D"]]'''
+    s = '''extra-keys=[["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls","cd ","clear","ENTER","ping ","git pull ","rm -rf ","exit"]]'''
     (TERMUX/"termux.properties").write_text(s)
 
 
