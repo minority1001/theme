@@ -9,14 +9,13 @@ BK=H/".termux-backup"; FD=H/".termux-themes/fonts"
 CFG=F/"config.fish"; PR=F/"ELMY0711-prompt.fish"
 
 NF="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/"
-# pake versi fix biar ga 403
 
 THEMES={
-"1":("Tokyo Night","Iosevka","regular","#1a1b26","#a9b1d6",
+"1":("Tokyo Night","FiraCode","regular","#1a1b26","#a9b1d6",
 ["#15161e","#f7768e","#73daca","#e0af68","#7aa2f7","#bb9af7",
 "#7dcfff","#a9b1d6","#414868","#f7768e","#73daca","#e0af68",
 "#7aa2f7","#bb9af7","#7dcfff","#c0caf5"]),
-"2":("Dracula","VictorMono","italic","#282a36","#f8f8f2",
+"2":("Dracula","JetBrainsMono","italic","#282a36","#f8f8f2",
 ["#21222c","#ff5555","#50fa7b","#f1fa8c","#bd93f9","#ff79c6",
 "#8be9fd","#f8f8f2","#6272a4","#ff6e6e","#69ff94","#ffffa5",
 "#d6acff","#ff92df","#a4ffff","#ffffff"]),
@@ -64,7 +63,7 @@ def backup():
             shutil.copy2(x,BK/x.name)
 
 def colors(t):
-    _,_,_,bg,fg,p=t
+    _,_,bg,fg,p=t
     s=f"background={bg}\nforeground={fg}\ncursor={fg}\n"
     s+="".join(f"color{i}={c}\n" for i,c in enumerate(p))
     (T/"colors.properties").write_text(s)
@@ -121,34 +120,33 @@ def tema_cmd():
 def download_font(name, style):
     d = FD / name
     d.mkdir(parents=True, exist_ok=True)
-
-    # pake link versi mono semua
     url = f"{NF}{name}.tar.xz"
     archive = d / f"{name}.tar.xz"
 
-    # hapus dulu biar download ulang
     if (T / "font.ttf").exists(): (T / "font.ttf").unlink()
 
-    try:
-        print(f"Downloading {name}...")
-        urllib.request.urlretrieve(url, archive)
-        with tarfile.open(archive, "r:xz") as tar: tar.extractall(d)
-    except Exception as e:
-        print("! Gagal download:", e)
-        return
+    print(f"Downloading {name}...")
+    subprocess.run(["curl","-L",url,"-o",str(archive)], check=False)
 
-    # cari file ttf yg ada kata name + mono
-    found = False
+    try:
+        with tarfile.open(archive, "r:xz") as tar: tar.extractall(d)
+    except: pass
+
+    # cari font mono + style
+    target_style = "italic" if style == "italic" else "regular"
+    for f in d.rglob("*.ttf"):
+        n = f.name.lower()
+        if name.lower() in n and "mono" in n and target_style in n:
+            shutil.copy2(f, T / "font.ttf")
+            print("✓ Font:", f.name); return
+
+    # fallback ke regular mono
     for f in d.rglob("*.ttf"):
         n = f.name.lower()
         if name.lower() in n and "mono" in n:
             shutil.copy2(f, T / "font.ttf")
-            print("✓ Font:", f.name)
-            found = True
-            break
-
-    if not found:
-        print("! Font ttf tidak ditemukan. Coba pilih tema lain")
+            print("✓ Font:", f.name); return
+    print("! Font ttf tidak ditemukan")
 
 def install_fish():
     if not shutil.which("fish") and shutil.which("pkg"):
@@ -179,8 +177,8 @@ def install():
 def menu():
     while True:
         os.system("clear")
-        print("╭── ELMY0711 THEME v2 FIX ──╮")
-        for n,t in THEMES.items(): print(f"│ {n:>2}. {t[0]:<15} │")
+        print("╭── ELMY0711 THEME v3 FIX ──╮")
+        for n,t in THEMES.items(): print(f"│ {n:>2}. {t[0]:<12} {t[1]:<12} │")
         print("│ R. restore │")
         print("│ Q. keluar │")
         print("╰───────────────────────────╯")
