@@ -137,35 +137,60 @@ def font(name,style):
 
     def find():
         fs=list(d.rglob("*.ttf"))
+
         if style=="italic":
-            fs=[x for x in fs if any(
-                z in x.name.lower() for z in ("italic","oblique")
-            )]
-        else:
-            fs=[x for x in fs if not any(
-                z in x.name.lower() for z in
-                ("italic","oblique","bold","light","thin","medium")
-            )]
+            for f in fs:
+                n=f.name.lower()
+                if "italic" in n or "oblique" in n:
+                    return f
+            return None
+
+        for f in fs:
+            n=f.name.lower()
+            bad=(
+                "italic","oblique","bold",
+                "light","thin","medium"
+            )
+            if not any(x in n for x in bad):
+                return f
+
         return fs[0] if fs else None
 
     f=find()
+
     if not f:
+        print(f"Download {name}...")
+
         a=d/f"{name}.tar.xz"
+
         try:
-            urllib.request.urlretrieve(URL.format(name),a)
-            with tarfile.open(a,"r:xz") as z:
+            urllib.request.urlretrieve(
+                URL.format(name),a
+            )
+
+            with tarfile.open(
+                a,"r:xz"
+            ) as z:
                 z.extractall(d)
+
             a.unlink(missing_ok=True)
+
         except Exception as e:
-            print("! Font download gagal:",e)
+            print("! Download gagal:",e)
             return
+
         f=find()
 
     if f:
-        shutil.copy2(f,T/"font.ttf")
+        shutil.copy2(
+            f,T/"font.ttf"
+        )
         print("✓ Font:",f.name)
     else:
-        print(f"! {name} {style} tidak ditemukan")
+        print(
+            f"! {name} {style} "
+            "tidak tersedia"
+        )
 
 def fish():
     if not shutil.which("fish") and shutil.which("pkg"):
