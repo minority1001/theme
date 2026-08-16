@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
+
 # ============================================================
 # TERMUX THEME PACK 10-IN-1
+# ============================================================
 #
-# Fitur:
-#   - 10 tema warna
-#   - 10 font Nerd Fonts berbeda
-#   - Fish shell
-#   - Custom Termux Extra Keys
-#   - Tombol "tema" untuk membuka pengaturan tema
-#   - Command "tema" tersedia dari Bash maupun Fish
-#   - Backup konfigurasi Termux
-#   - Menu nyaman untuk layar HP
+# Repository:
+# https://github.com/minority1001/theme
 #
-# Target:
-#   Termux Android
+# Install:
+#
+# curl -fsSL https://raw.githubusercontent.com/minority1001/theme/main/install-theme.py | python3
+#
 # ============================================================
 
 import os
@@ -22,7 +19,6 @@ import shutil
 import subprocess
 import urllib.request
 import tarfile
-import tempfile
 from pathlib import Path
 
 
@@ -37,14 +33,15 @@ THEME_DIR = HOME / ".termux-themes"
 FONT_CACHE = THEME_DIR / "fonts"
 
 BIN_DIR = HOME / "bin"
+
 THEME_SCRIPT = HOME / "termux-theme.py"
 
 BACKUP_DIR = HOME / ".termux-backup"
 
-
-# ============================================================
-# NERD FONTS
-# ============================================================
+INSTALLER_URL = (
+    "https://raw.githubusercontent.com/"
+    "minority1001/theme/main/install-theme.py"
+)
 
 NERD_FONT_URL = (
     "https://github.com/ryanoasis/nerd-fonts/"
@@ -53,7 +50,7 @@ NERD_FONT_URL = (
 
 
 # ============================================================
-# 10 THEME
+# 10 THEMES
 # ============================================================
 
 THEMES = {
@@ -341,7 +338,7 @@ THEMES = {
 
 
 # ============================================================
-# BASIC FUNCTIONS
+# BASIC
 # ============================================================
 
 def clear():
@@ -368,10 +365,26 @@ def run(command, check=False):
 
 
 def ensure_directories():
-    TERMUX_DIR.mkdir(parents=True, exist_ok=True)
-    THEME_DIR.mkdir(parents=True, exist_ok=True)
-    FONT_CACHE.mkdir(parents=True, exist_ok=True)
-    BIN_DIR.mkdir(parents=True, exist_ok=True)
+
+    TERMUX_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    THEME_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    FONT_CACHE.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    BIN_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
 
 # ============================================================
@@ -379,26 +392,596 @@ def ensure_directories():
 # ============================================================
 
 def backup_file(source):
+
     if not source.exists():
         return
 
-    destination = BACKUP_DIR / source.name
+    BACKUP_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
-    if not BACKUP_DIR.exists():
-        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    destination = (
+        BACKUP_DIR /
+        source.name
+    )
 
     if not destination.exists():
-        shutil.copy2(source, destination)
+
+        try:
+            shutil.copy2(
+                source,
+                destination
+            )
+        except Exception:
+            pass
 
 
 def backup_config():
+
     ensure_directories()
 
-    backup_file(TERMUX_DIR / "colors.properties")
-    backup_file(TERMUX_DIR / "font.ttf")
-    backup_file(TERMUX_DIR / "termux.properties")
+    backup_file(
+        TERMUX_DIR /
+        "colors.properties"
+    )
 
-    print("[+] Backup konfigurasi dibuat.")
+    backup_file(
+        TERMUX_DIR /
+        "font.ttf"
+    )
+
+    backup_file(
+        TERMUX_DIR /
+        "termux.properties"
+    )
+
+
+# ============================================================
+# CREATE THEME MANAGER
+# ============================================================
+
+def install_theme_manager():
+
+    ensure_directories()
+
+    try:
+
+        source = Path(__file__)
+
+        # Ketika dijalankan sebagai file biasa
+        if (
+            source.exists()
+            and source.is_file()
+            and source.resolve()
+            != THEME_SCRIPT.resolve()
+        ):
+
+            shutil.copy2(
+                source,
+                THEME_SCRIPT
+            )
+
+            print(
+                "[+] Theme Manager dibuat:"
+            )
+
+            print(
+                f"    {THEME_SCRIPT}"
+            )
+
+            return True
+
+    except Exception:
+        pass
+
+    # --------------------------------------------------------
+    # Ketika dijalankan:
+    #
+    # curl URL | python3
+    #
+    # --------------------------------------------------------
+
+    print(
+        "[+] Mengambil Theme Manager..."
+    )
+
+    try:
+
+        urllib.request.urlretrieve(
+            INSTALLER_URL,
+            THEME_SCRIPT
+        )
+
+        print(
+            "[+] Theme Manager dibuat:"
+        )
+
+        print(
+            f"    {THEME_SCRIPT}"
+        )
+
+        return True
+
+    except Exception as e:
+
+        print(
+            "[!] Tidak dapat membuat Theme Manager."
+        )
+
+        print(
+            f"    {e}"
+        )
+
+        return False
+
+
+# ============================================================
+# COMMAND TEMA
+# ============================================================
+
+def create_theme_command():
+
+    ensure_directories()
+
+    command_file = (
+        BIN_DIR /
+        "tema"
+    )
+
+    content = f'''#!/data/data/com.termux/files/usr/bin/bash
+
+exec python3 "$HOME/termux-theme.py"
+'''
+
+    try:
+
+        command_file.write_text(
+            content,
+            encoding="utf-8"
+        )
+
+        command_file.chmod(
+            0o755
+        )
+
+        print(
+            "[+] Command tema dibuat."
+        )
+
+    except Exception as e:
+
+        print(
+            f"[!] Gagal membuat command tema: {e}"
+        )
+
+
+# ============================================================
+# PATH BASH
+# ============================================================
+
+def configure_bash_path():
+
+    path_line = (
+        'export PATH="$HOME/bin:$PATH"'
+    )
+
+    for filename in [
+        ".bashrc",
+        ".profile"
+    ]:
+
+        file = HOME / filename
+
+        try:
+
+            if file.exists():
+
+                text = file.read_text(
+                    encoding="utf-8",
+                    errors="ignore"
+                )
+
+            else:
+
+                text = ""
+
+            if path_line not in text:
+
+                with file.open(
+                    "a",
+                    encoding="utf-8"
+                ) as f:
+
+                    f.write(
+                        "\n# Termux Theme Pack\n"
+                    )
+
+                    f.write(
+                        path_line +
+                        "\n"
+                    )
+
+        except Exception:
+            pass
+
+
+# ============================================================
+# FISH PATH
+# ============================================================
+
+def configure_fish_path():
+
+    fish_dir = (
+        HOME /
+        ".config" /
+        "fish"
+    )
+
+    fish_dir.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    fish_config = (
+        fish_dir /
+        "config.fish"
+    )
+
+    path_line = (
+        "fish_add_path $HOME/bin"
+    )
+
+    try:
+
+        if fish_config.exists():
+
+            text = fish_config.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+        else:
+
+            text = ""
+
+        if path_line not in text:
+
+            with fish_config.open(
+                "a",
+                encoding="utf-8"
+            ) as f:
+
+                f.write(
+                    "\n" +
+                    path_line +
+                    "\n"
+                )
+
+    except Exception:
+        pass
+
+
+# ============================================================
+# COLORS
+# ============================================================
+
+def write_colors(colors):
+
+    file = (
+        TERMUX_DIR /
+        "colors.properties"
+    )
+
+    try:
+
+        with file.open(
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            f.write(
+                "# ==========================================\n"
+            )
+
+            f.write(
+                "# Generated by Termux Theme Pack\n"
+            )
+
+            f.write(
+                "# ==========================================\n\n"
+            )
+
+            for key, value in colors.items():
+
+                f.write(
+                    f"{key}={value}\n"
+                )
+
+        print(
+            "[+] colors.properties diterapkan."
+        )
+
+    except Exception as e:
+
+        print(
+            f"[!] Gagal menulis warna: {e}"
+        )
+
+
+# ============================================================
+# CUSTOM KEYBOARD
+# ============================================================
+
+def write_keyboard():
+
+    file = (
+        TERMUX_DIR /
+        "termux.properties"
+    )
+
+    config = '''# ==================================================
+# TERMUX CUSTOM EXTRA KEYS
+# ==================================================
+
+extra-keys = [["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls ","cd ","clear ","ENTER","ping ","git pull","rm -rf ","exit "]]
+
+volume-keys = true
+'''
+
+    try:
+
+        file.write_text(
+            config,
+            encoding="utf-8"
+        )
+
+        print(
+            "[+] Custom keyboard diterapkan."
+        )
+
+    except Exception as e:
+
+        print(
+            f"[!] Gagal membuat keyboard: {e}"
+        )
+
+
+# ============================================================
+# FISH PROMPT ELMY0711
+# ============================================================
+
+def configure_fish(colors):
+
+    fish_dir = (
+        HOME /
+        ".config" /
+        "fish"
+    )
+
+    fish_dir.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    fish_config = (
+        fish_dir /
+        "config.fish"
+    )
+
+    # --------------------------------------------------------
+    # Mapping warna tema
+    # --------------------------------------------------------
+
+    c1 = colors.get(
+        "color1",
+        "#ff5555"
+    )
+
+    c2 = colors.get(
+        "color2",
+        "#50fa7b"
+    )
+
+    c3 = colors.get(
+        "color3",
+        "#f1fa8c"
+    )
+
+    c4 = colors.get(
+        "color4",
+        "#bd93f9"
+    )
+
+    c5 = colors.get(
+        "color5",
+        "#ff79c6"
+    )
+
+    c6 = colors.get(
+        "color6",
+        "#8be9fd"
+    )
+
+    # --------------------------------------------------------
+    # Prompt
+    # --------------------------------------------------------
+
+    prompt = f'''# ============================================================
+# TERMUX THEME PACK
+# CUSTOM PROMPT ELMY0711
+# ============================================================
+
+set -g fish_greeting ""
+
+# ============================================================
+# COMMAND
+# ============================================================
+
+alias tema="$HOME/bin/tema"
+
+alias ll="ls -lah"
+alias la="ls -A"
+alias c="clear"
+
+# ============================================================
+# PROMPT CUSTOM ELMY0711
+# ============================================================
+
+function fish_prompt
+
+    set_color {c6}
+    echo -n (date "+%a %b %d %H:%M:%S")
+    echo ""
+
+    set_color {c5}
+    echo -n "╭─"
+
+    set_color {c1}
+    echo -n "💖"
+
+    set_color {c5}
+    echo -n "ELMY0711"
+
+    set_color {c1}
+    echo -n "💜"
+
+    set_color {c5}
+    echo -n "─["
+
+    set_color {c3}
+    echo -n (prompt_pwd)
+
+    set_color {c5}
+    echo -n "]"
+
+    echo ""
+
+    set_color {c5}
+    echo -n "╰───"
+
+    set_color {c2}
+    echo -n "╼ "
+
+    set_color normal
+
+end
+
+
+function fish_right_prompt
+end
+
+# END PROMPT CUSTOM ELMY0711
+'''
+
+    try:
+
+        fish_config.write_text(
+            prompt,
+            encoding="utf-8"
+        )
+
+        print(
+            "[+] Fish prompt ELMY0711 diterapkan."
+        )
+
+    except Exception as e:
+
+        print(
+            f"[!] Gagal membuat config Fish: {e}"
+        )
+
+
+# ============================================================
+# FISH INSTALL
+# ============================================================
+
+def install_fish():
+
+    print(
+        "\n[+] Memasang Fish..."
+    )
+
+    if not command_exists("pkg"):
+
+        print(
+            "[!] Perintah pkg tidak ditemukan."
+        )
+
+        return False
+
+    run(
+        ["pkg", "update", "-y"],
+        check=False
+    )
+
+    run(
+        ["pkg", "install", "fish", "-y"],
+        check=False
+    )
+
+    if command_exists("fish"):
+
+        print(
+            "[+] Fish berhasil dipasang."
+        )
+
+        return True
+
+    print(
+        "[!] Fish gagal dipasang."
+    )
+
+    return False
+
+
+# ============================================================
+# FISH DEFAULT
+# ============================================================
+
+def set_fish_default():
+
+    fish = shutil.which(
+        "fish"
+    )
+
+    if not fish:
+
+        return
+
+    print()
+    print(
+        f"Fish ditemukan: {fish}"
+    )
+
+    answer = input(
+        "Jadikan Fish sebagai default shell? [y/N]: "
+    ).strip().lower()
+
+    if answer != "y":
+
+        print(
+            "[+] Fish tidak dijadikan default."
+        )
+
+        return
+
+    if command_exists("chsh"):
+
+        run(
+            ["chsh", "-s", fish],
+            check=False
+        )
+
+        print(
+            "[+] Pengaturan default shell selesai."
+        )
+
+    else:
+
+        print(
+            "[!] chsh tidak tersedia."
+        )
 
 
 # ============================================================
@@ -406,59 +989,92 @@ def backup_config():
 # ============================================================
 
 def find_font(directory):
-    fonts = list(directory.glob("*.ttf"))
+
+    fonts = list(
+        directory.glob("*.ttf")
+    )
 
     if not fonts:
+
         return None
 
-    # Prioritaskan Mono
-    mono = [
-        f for f in fonts
-        if "Mono" in f.name or "mono" in f.name
+    # Prioritas Nerd Font Mono
+    mono_fonts = [
+        font
+        for font in fonts
+        if "Mono" in font.name
+        or "mono" in font.name
     ]
 
-    if mono:
-        return mono[0]
+    if mono_fonts:
+
+        return mono_fonts[0]
 
     return fonts[0]
 
 
 def download_font(font_name):
 
-    cache_dir = FONT_CACHE / font_name
-    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_dir = (
+        FONT_CACHE /
+        font_name
+    )
 
-    existing = find_font(cache_dir)
+    cache_dir.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    existing = find_font(
+        cache_dir
+    )
 
     if existing:
+
         return existing
 
-    url = NERD_FONT_URL.format(font_name)
+    archive = (
+        cache_dir /
+        f"{font_name}.tar.xz"
+    )
 
-    print(f"[+] Download {font_name}...")
+    url = NERD_FONT_URL.format(
+        font_name
+    )
 
-    archive = cache_dir / f"{font_name}.tar.xz"
+    print(
+        f"[+] Download font: {font_name}"
+    )
 
     try:
+
         urllib.request.urlretrieve(
             url,
             archive
         )
+
     except Exception as e:
-        print(f"[!] Download gagal: {e}")
+
+        print(
+            f"[!] Download font gagal: {e}"
+        )
+
         return None
 
     try:
+
         with tarfile.open(
             archive,
             "r:xz"
         ) as tar:
 
-            # Hindari path traversal
             for member in tar.getmembers():
 
-                member_path = Path(member.name)
+                member_path = Path(
+                    member.name
+                )
 
+                # Security: cegah path traversal
                 if member_path.is_absolute():
                     continue
 
@@ -471,16 +1087,30 @@ def download_font(font_name):
                 )
 
     except Exception as e:
-        print(f"[!] Extract gagal: {e}")
-        archive.unlink(missing_ok=True)
+
+        print(
+            f"[!] Extract font gagal: {e}"
+        )
+
+        archive.unlink(
+            missing_ok=True
+        )
+
         return None
 
-    archive.unlink(missing_ok=True)
+    archive.unlink(
+        missing_ok=True
+    )
 
-    font = find_font(cache_dir)
+    font = find_font(
+        cache_dir
+    )
 
     if font:
-        print(f"[+] Font ditemukan: {font.name}")
+
+        print(
+            f"[+] Font ditemukan: {font.name}"
+        )
 
     return font
 
@@ -491,311 +1121,64 @@ def download_font(font_name):
 
 def install_font(font_name):
 
-    font = download_font(font_name)
+    font = download_font(
+        font_name
+    )
 
     if not font:
-        print("[!] Font tidak tersedia.")
+
         return False
 
-    destination = TERMUX_DIR / "font.ttf"
+    destination = (
+        TERMUX_DIR /
+        "font.ttf"
+    )
 
     try:
+
         shutil.copy2(
             font,
             destination
         )
 
-        print(f"[+] Font aktif: {font.name}")
+        print(
+            f"[+] Font aktif: {font.name}"
+        )
+
         return True
 
     except Exception as e:
-        print(f"[!] Gagal memasang font: {e}")
+
+        print(
+            f"[!] Gagal memasang font: {e}"
+        )
+
         return False
 
 
 # ============================================================
-# COLORS
+# RELOAD TERMUX
 # ============================================================
 
-def write_colors(colors):
-
-    file = TERMUX_DIR / "colors.properties"
-
-    try:
-        with open(
-            file,
-            "w",
-            encoding="utf-8"
-        ) as f:
-
-            f.write(
-                "# ==================================================\n"
-                "# Generated by Termux Theme Pack\n"
-                "# ==================================================\n\n"
-            )
-
-            for key, value in colors.items():
-                f.write(
-                    f"{key}={value}\n"
-                )
-
-        print("[+] Warna diterapkan.")
-
-    except Exception as e:
-        print(f"[!] Gagal menulis warna: {e}")
-
-
-# ============================================================
-# CUSTOM KEYBOARD
-# ============================================================
-
-def write_keyboard():
-
-    file = TERMUX_DIR / "termux.properties"
-
-    config = '''# ==================================================
-# TERMUX CUSTOM EXTRA KEYS
-# Generated by Termux Theme Pack
-# ==================================================
-
-extra-keys = [["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls ","cd ","clear ","ENTER","ping ","git pull ","rm -rf ","exit "]]
-
-# Volume sebagai tombol modifier
-volume-keys = true
-'''
-
-    try:
-
-        with open(
-            file,
-            "w",
-            encoding="utf-8"
-        ) as f:
-            f.write(config)
-
-        print("[+] Custom keyboard diterapkan.")
-
-    except Exception as e:
-        print(f"[!] Gagal membuat keyboard: {e}")
-
-
-# ============================================================
-# COMMAND TEMA
-# ============================================================
-
-def create_theme_command():
-
-    BIN_DIR.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    command_file = BIN_DIR / "tema"
-
-    content = f'''#!/data/data/com.termux/files/usr/bin/bash
-
-python3 "{THEME_SCRIPT}"
-'''
-
-    try:
-
-        with open(
-            command_file,
-            "w",
-            encoding="utf-8"
-        ) as f:
-            f.write(content)
-
-        command_file.chmod(0o755)
-
-        print("[+] Command 'tema' dibuat:")
-        print(f"    {command_file}")
-
-    except Exception as e:
-        print(f"[!] Gagal membuat command tema: {e}")
-
-
-# ============================================================
-# PATH
-# ============================================================
-
-def configure_path():
-
-    bashrc = HOME / ".bashrc"
-    profile = HOME / ".profile"
-
-    path_line = 'export PATH="$HOME/bin:$PATH"'
-
-    for file in [bashrc, profile]:
-
-        try:
-
-            if file.exists():
-                text = file.read_text(
-                    encoding="utf-8",
-                    errors="ignore"
-                )
-            else:
-                text = ""
-
-            if path_line not in text:
-
-                with open(
-                    file,
-                    "a",
-                    encoding="utf-8"
-                ) as f:
-
-                    f.write(
-                        "\n# Termux Theme Pack\n"
-                    )
-
-                    f.write(
-                        path_line + "\n"
-                    )
-
-        except Exception:
-            pass
-
-    print("[+] PATH command tema dikonfigurasi.")
-
-
-# ============================================================
-# FISH
-# ============================================================
-
-def install_fish():
-
-    print("\n[+] Memasang Fish...")
-
-    if not command_exists("pkg"):
-
-        print("[!] pkg tidak ditemukan.")
-        return False
-
-    run(
-        ["pkg", "update", "-y"],
-        check=False
-    )
-
-    result = run(
-        ["pkg", "install", "fish", "-y"],
-        check=False
-    )
-
-    if command_exists("fish"):
-
-        print("[+] Fish berhasil dipasang.")
-        return True
-
-    print("[!] Fish belum tersedia.")
-    return False
-
-
-# ============================================================
-# FISH CONFIG
-# ============================================================
-
-def configure_fish():
-
-    fish_config_dir = (
-        HOME /
-        ".config" /
-        "fish"
-    )
-
-    fish_config_dir.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    config_file = (
-        fish_config_dir /
-        "config.fish"
-    )
-
-    content = r'''
-# ==================================================
-# TERMUX THEME PACK - FISH
-# ==================================================
-
-set -g fish_greeting ""
-
-# Command theme
-alias tema="$HOME/bin/tema"
-
-# Shortcut umum
-alias ll="ls -lah"
-alias la="ls -A"
-alias c="clear"
-
-function fish_prompt
-
-    set_color cyan
-    echo -n "╭─["
-
-    set_color green
-    echo -n (whoami)
-
-    set_color cyan
-    echo -n "@"
-
-    set_color magenta
-    echo -n (hostname)
-
-    set_color cyan
-    echo -n "] "
-
-    set_color yellow
-    echo -n (prompt_pwd)
-
-    echo
-
-    set_color cyan
-    echo -n "╰─❯ "
-
-    set_color normal
-
-end
-'''
-
-    try:
-
-        with open(
-            config_file,
-            "w",
-            encoding="utf-8"
-        ) as f:
-            f.write(content)
-
-        print("[+] Fish config dibuat.")
-
-    except Exception as e:
-        print(f"[!] Fish config gagal: {e}")
-
-
-# ============================================================
-# SET FISH DEFAULT
-# ============================================================
-
-def set_fish_default():
-
-    fish = shutil.which("fish")
-
-    if not fish:
-        return
-
-    print("[+] Fish ditemukan:")
-    print(f"    {fish}")
-
-    # chsh tersedia pada sebagian instalasi Termux.
-    if command_exists("chsh"):
-
-        print("[+] Mencoba menjadikan Fish sebagai shell default...")
+def reload_termux():
+
+    if command_exists(
+        "termux-reload-settings"
+    ):
 
         run(
-            ["chsh", "-s", fish],
+            ["termux-reload-settings"],
             check=False
+        )
+
+        print(
+            "[+] Pengaturan Termux di-reload."
+        )
+
+    else:
+
+        print(
+            "[!] termux-reload-settings tidak tersedia."
         )
 
 
@@ -806,122 +1189,80 @@ def set_fish_default():
 def apply_theme(number):
 
     if number not in THEMES:
-        print("[!] Tema tidak ditemukan.")
+
+        print(
+            "[!] Tema tidak ditemukan."
+        )
+
         return
 
     theme = THEMES[number]
 
     clear()
 
-    print("╔══════════════════════════════════════╗")
-    print("║          APPLYING THEME              ║")
-    print("╠══════════════════════════════════════╣")
+    print(
+        "╔══════════════════════════════════════╗"
+    )
+
+    print(
+        "║          APPLYING THEME              ║"
+    )
+
+    print(
+        "╠══════════════════════════════════════╣"
+    )
+
     print(
         f"║ Tema : {theme['name']:<26}║"
     )
+
     print(
         f"║ Font : {theme['font']:<26}║"
     )
-    print("╚══════════════════════════════════════╝")
+
+    print(
+        "╚══════════════════════════════════════╝"
+    )
 
     backup_config()
 
+    # Warna
     write_colors(
         theme["colors"]
     )
 
+    # Fish prompt sesuai warna tema
+    configure_fish(
+        theme["colors"]
+    )
+
+    # Font
     install_font(
         theme["font"]
     )
 
+    # Keyboard
     write_keyboard()
 
+    # Command tema
     create_theme_command()
 
-    configure_path()
+    # PATH
+    configure_bash_path()
+    configure_fish_path()
+
+    # Reload
+    reload_termux()
 
     print()
-    print("[+] Tema berhasil diterapkan.")
-    print()
-    print("[!] Restart Termux untuk memuat:")
-    print("    - warna")
-    print("    - font")
-    print("    - extra keys")
-
-
-# ============================================================
-# INSTALL ALL
-# ============================================================
-
-def install_all():
-
-    clear()
-
-    print("╔══════════════════════════════════════╗")
-    print("║       TERMUX THEME PACK INSTALL     ║")
-    print("╚══════════════════════════════════════╝")
-
-    ensure_directories()
-
-    backup_config()
-
-    print("\n[1/4] Fish")
-
-    install_fish()
-
-    print("\n[2/4] Fish configuration")
-
-    configure_fish()
-
-    print("\n[3/4] Custom keyboard")
-
-    write_keyboard()
-
-    print("\n[4/4] Command tema")
-
-    create_theme_command()
-    configure_path()
-
-    print("\n[+] Download 10 font...")
-
-    total = len(THEMES)
-
-    for index, number in enumerate(
-        THEMES,
-        start=1
-    ):
-
-        theme = THEMES[number]
-
-        print()
-        print(
-            f"[{index}/{total}] "
-            f"{theme['name']} - "
-            f"{theme['font']}"
-        )
-
-        font = download_font(
-            theme["font"]
-        )
-
-        if font:
-            print("    [OK]")
-        else:
-            print("    [FAIL]")
-
-    print("\n[+] Konfigurasi Fish selesai.")
-
-    set_fish_default()
+    print(
+        "[+] Tema berhasil diterapkan."
+    )
 
     print()
-    print("╔══════════════════════════════════════╗")
-    print("║          INSTALL SELESAI             ║")
-    print("╠══════════════════════════════════════╣")
-    print("║ Gunakan tombol 'tema' untuk menu.    ║")
-    print("║                                      ║")
-    print("║ Setelah restart:                     ║")
-    print("║ $ tema                               ║")
-    print("╚══════════════════════════════════════╝")
+    print(
+        "[!] Font biasanya memerlukan restart Termux."
+    )
 
 
 # ============================================================
@@ -932,7 +1273,10 @@ def restore_backup():
 
     if not BACKUP_DIR.exists():
 
-        print("[!] Backup tidak ditemukan.")
+        print(
+            "[!] Backup tidak ditemukan."
+        )
+
         return
 
     restored = 0
@@ -943,8 +1287,15 @@ def restore_backup():
         "termux.properties"
     ]:
 
-        source = BACKUP_DIR / name
-        destination = TERMUX_DIR / name
+        source = (
+            BACKUP_DIR /
+            name
+        )
+
+        destination = (
+            TERMUX_DIR /
+            name
+        )
 
         if source.exists():
 
@@ -961,8 +1312,10 @@ def restore_backup():
                 pass
 
     print(
-        f"[+] {restored} konfigurasi dipulihkan."
+        f"[+] {restored} file dikembalikan."
     )
+
+    reload_termux()
 
 
 # ============================================================
@@ -975,44 +1328,55 @@ def theme_menu():
 
         clear()
 
-        print("╔══════════════════════════════════════╗")
-        print("║         TERMUX THEME SETTINGS        ║")
-        print("╠══════════════════════════════════════╣")
+        print(
+            "╔══════════════════════════════════════╗"
+        )
+
+        print(
+            "║         TERMUX THEME SETTINGS        ║"
+        )
+
+        print(
+            "╠══════════════════════════════════════╣"
+        )
 
         for number, theme in THEMES.items():
 
             print(
                 f"║ {number:>2}. "
                 f"{theme['name']:<17} "
-                f"{theme['font']:<11}║"
+                f"{theme['font']:<12}║"
             )
 
-        print("╠══════════════════════════════════════╣")
-        print("║ D. Download semua font               ║")
-        print("║ K. Refresh custom keyboard            ║")
-        print("║ R. Restore konfigurasi lama           ║")
-        print("║ B. Kembali                            ║")
-        print("╚══════════════════════════════════════╝")
+        print(
+            "╠══════════════════════════════════════╣"
+        )
 
-        choice = input("\nPilih: ").strip().lower()
+        print(
+            "║ K. Refresh keyboard                  ║"
+        )
+
+        print(
+            "║ R. Restore konfigurasi               ║"
+        )
+
+        print(
+            "║ B. Kembali                            ║"
+        )
+
+        print(
+            "╚══════════════════════════════════════╝"
+        )
+
+        choice = input(
+            "\nPilih tema: "
+        ).strip().lower()
 
         if choice in THEMES:
 
-            apply_theme(choice)
-
-            pause()
-
-        elif choice == "d":
-
-            for number, theme in THEMES.items():
-
-                print(
-                    f"\n[+] {theme['name']}..."
-                )
-
-                download_font(
-                    theme["font"]
-                )
+            apply_theme(
+                choice
+            )
 
             pause()
 
@@ -1020,13 +1384,7 @@ def theme_menu():
 
             write_keyboard()
 
-            print(
-                "\n[+] Keyboard diperbarui."
-            )
-
-            print(
-                "[!] Tutup dan buka kembali Termux."
-            )
+            reload_termux()
 
             pause()
 
@@ -1042,37 +1400,194 @@ def theme_menu():
 
         else:
 
-            print("[!] Pilihan tidak valid.")
+            print(
+                "[!] Pilihan tidak valid."
+            )
+
             pause()
 
 
 # ============================================================
-# MAIN MENU INSTALLER
+# INSTALL ALL
 # ============================================================
 
-def installer_menu():
+def install_all():
+
+    clear()
+
+    print(
+        "╔══════════════════════════════════════╗"
+    )
+
+    print(
+        "║       TERMUX THEME PACK INSTALL      ║"
+    )
+
+    print(
+        "╚══════════════════════════════════════╝"
+    )
+
+    ensure_directories()
+
+    backup_config()
+
+    # --------------------------------------------------------
+    # Theme Manager
+    # --------------------------------------------------------
+
+    print(
+        "\n[1/6] Theme Manager"
+    )
+
+    install_theme_manager()
+
+    # --------------------------------------------------------
+    # Fish
+    # --------------------------------------------------------
+
+    print(
+        "\n[2/6] Fish"
+    )
+
+    install_fish()
+
+    # --------------------------------------------------------
+    # Default prompt
+    # --------------------------------------------------------
+
+    print(
+        "\n[3/6] Fish Prompt"
+    )
+
+    configure_fish(
+        THEMES["1"]["colors"]
+    )
+
+    # --------------------------------------------------------
+    # Keyboard
+    # --------------------------------------------------------
+
+    print(
+        "\n[4/6] Custom Keyboard"
+    )
+
+    write_keyboard()
+
+    # --------------------------------------------------------
+    # Command
+    # --------------------------------------------------------
+
+    print(
+        "\n[5/6] Command tema"
+    )
+
+    create_theme_command()
+
+    configure_bash_path()
+    configure_fish_path()
+
+    # --------------------------------------------------------
+    # Jangan download semua font
+    # --------------------------------------------------------
+
+    print(
+        "\n[6/6] Selesai"
+    )
+
+    print()
+    print(
+        "╔══════════════════════════════════════╗"
+    )
+
+    print(
+        "║          INSTALL SELESAI             ║"
+    )
+
+    print(
+        "╠══════════════════════════════════════╣"
+    )
+
+    print(
+        "║ Jalankan: tema                       ║"
+    )
+
+    print(
+        "║                                      ║"
+    )
+
+    print(
+        "║ Pilih tema untuk download font.      ║"
+    )
+
+    print(
+        "╚══════════════════════════════════════╝"
+    )
+
+    set_fish_default()
+
+
+# ============================================================
+# MAIN MENU
+# ============================================================
+
+def main_menu():
 
     while True:
 
         clear()
 
-        print("╔══════════════════════════════════════╗")
-        print("║        TERMUX CUSTOM PACK            ║")
-        print("║            10 THEMES                 ║")
-        print("╠══════════════════════════════════════╣")
-        print("║ 1. Install semua                     ║")
-        print("║ 2. Pengaturan tema                   ║")
-        print("║ 3. Custom keyboard                   ║")
-        print("║ 4. Install Fish                      ║")
-        print("║ 5. Restore backup                    ║")
-        print("║ Q. Keluar                             ║")
-        print("╚══════════════════════════════════════╝")
+        print(
+            "╔══════════════════════════════════════╗"
+        )
 
-        choice = input("\nPilih: ").strip().lower()
+        print(
+            "║       TERMUX CUSTOM THEME PACK       ║"
+        )
+
+        print(
+            "║              ELMY0711                ║"
+        )
+
+        print(
+            "╠══════════════════════════════════════╣"
+        )
+
+        print(
+            "║ 1. Install semua                     ║"
+        )
+
+        print(
+            "║ 2. Pengaturan tema                   ║"
+        )
+
+        print(
+            "║ 3. Custom keyboard                   ║"
+        )
+
+        print(
+            "║ 4. Install Fish                      ║"
+        )
+
+        print(
+            "║ 5. Restore backup                    ║"
+        )
+
+        print(
+            "║ Q. Keluar                             ║"
+        )
+
+        print(
+            "╚══════════════════════════════════════╝"
+        )
+
+        choice = input(
+            "\nPilih: "
+        ).strip().lower()
 
         if choice == "1":
 
             install_all()
+
             pause()
 
         elif choice == "2":
@@ -1083,16 +1598,20 @@ def installer_menu():
 
             write_keyboard()
 
-            print()
-            print("[+] Custom keyboard selesai.")
-            print("[!] Restart Termux.")
+            reload_termux()
 
             pause()
 
         elif choice == "4":
 
             install_fish()
-            configure_fish()
+
+            configure_fish(
+                THEMES["1"]["colors"]
+            )
+
+            configure_fish_path()
+
             set_fish_default()
 
             pause()
@@ -1105,12 +1624,18 @@ def installer_menu():
 
         elif choice == "q":
 
-            print("\nBye.")
+            print(
+                "\nBye."
+            )
+
             break
 
         else:
 
-            print("[!] Pilihan tidak valid.")
+            print(
+                "[!] Pilihan tidak valid."
+            )
+
             pause()
 
 
@@ -1120,18 +1645,11 @@ def installer_menu():
 
 def main():
 
-    if "TERMUX_VERSION" not in os.environ:
-
-        print("========================================")
-        print(" PERINGATAN")
-        print(" Script ini dibuat untuk Termux.")
-        print("========================================")
-        print()
-
     ensure_directories()
 
-    installer_menu()
+    main_menu()
 
 
 if __name__ == "__main__":
+
     main()
