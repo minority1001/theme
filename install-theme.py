@@ -242,7 +242,7 @@ def write_prompt(theme):
 
     text = f'''function fish_prompt
     set_color {c6}
-    echo -n (date "+%a %b %d %H:%M:%S")
+    echo -n (date "+%b %d %H:%M")
     echo ""
 
     set_color {c5}
