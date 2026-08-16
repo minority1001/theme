@@ -122,25 +122,24 @@ def download_font(name, style):
     d = FD / name
     d.mkdir(parents=True, exist_ok=True)
 
-    # mapping nama file v3.2.1
     files = {
-        "Iosevka":("Iosevka.tar.xz","IosevkaNerdFont-Regular.ttf"),
-        "Hack":("Hack.tar.xz","HackNerdFont-Regular.ttf"),
-        "CascadiaCode":("CascadiaCode.tar.xz","CaskaydiaCoveNerdFont-Regular.ttf"),
-        "FiraCode":("FiraCode.tar.xz","FiraCodeNerdFont-Regular.ttf"),
-        "Meslo":("Meslo.tar.xz","MesloLGMNerdFont-Regular.ttf"),
-        "JetBrainsMono":("JetBrainsMono.tar.xz","JetBrainsMonoNerdFont-Regular.ttf"),
-        "RobotoMono":("RobotoMono.tar.xz","RobotoMonoNerdFont-Regular.ttf"),
-        "UbuntuMono":("UbuntuMono.tar.xz","UbuntuMonoNerdFont-Regular.ttf"),
-        "Mononoki":("Mononoki.tar.xz","MononokiNerdFont-Regular.ttf"),
-        "VictorMono":("VictorMono.tar.xz","VictorMonoNerdFont-Italic.ttf" if style=="italic" else "VictorMonoNerdFont-Regular.ttf"),
+        "Iosevka":("Iosevka.tar.xz","IosevkaNerdFontMono-Regular.ttf"),
+        "Hack":("Hack.tar.xz","HackNerdFontMono-Regular.ttf"),
+        "CascadiaCode":("CascadiaCode.tar.xz","CaskaydiaCoveNerdFontMono-Regular.ttf"),
+        "FiraCode":("FiraCode.tar.xz","FiraCodeNerdFontMono-Regular.ttf"),
+        "Meslo":("Meslo.tar.xz","MesloLGMNerdFontMono-Regular.ttf"),
+        "JetBrainsMono":("JetBrainsMono.tar.xz","JetBrainsMonoNerdFontMono-Regular.ttf"),
+        "RobotoMono":("RobotoMono.tar.xz","RobotoMonoNerdFontMono-Regular.ttf"),
+        "UbuntuMono":("UbuntuMono.tar.xz","UbuntuMonoNerdFontMono-Regular.ttf"),
+        "Mononoki":("Mononoki.tar.xz","MononokiNerdFontMono-Regular.ttf"),
+        "VictorMono":("VictorMono.tar.xz","VictorMonoNerdFontMono-Italic.ttf" if style=="italic" else "VictorMonoNerdFontMono-Regular.ttf"),
     }
 
     if name not in files: return
     asset, font_name = files[name]
     archive = d / asset
 
-    if not any(d.rglob("*.ttf")):
+    if not (T / "font.ttf").exists():
         try:
             print(f"Downloading {name}...")
             urllib.request.urlretrieve(NF + asset, archive)
@@ -148,8 +147,9 @@ def download_font(name, style):
         except Exception as e:
             print("! Gagal download:", e); return
 
+    # cari font yg mirip namanya, biar ga gagal kalau beda dikit
     for f in d.rglob("*.ttf"):
-        if font_name.lower() in f.name.lower():
+        if name.lower() in f.name.lower() and "mono" in f.name.lower():
             shutil.copy2(f, T / "font.ttf")
             print("✓ Font:", f.name); return
     print("! Font ttf tidak ditemukan")
