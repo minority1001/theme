@@ -34,11 +34,10 @@ def backup():
             shutil.copy2(x,BK/x.name)
 
 def colors(t):
-    _,_,bg,fg,p=t
+    _,_,_,bg,fg,p=t # <--- tambahin 1 koma dan _ lagi
     s=f"background={bg}\nforeground={fg}\ncursor={fg}\n"
     s+="".join(f"color{i}={c}\n" for i,c in enumerate(p))
     (T/"colors.properties").write_text(s)
-
 def prompt(t):
     p=t[5]; c1,c2,c3,c5,c6=p[1],p[2],p[3],p[5],p[6]
     s=f'''function fish_prompt
