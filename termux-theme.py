@@ -122,37 +122,33 @@ def download_font(name, style):
     d = FD / name
     d.mkdir(parents=True, exist_ok=True)
 
-    files = {
-        "Iosevka":("Iosevka.tar.xz","IosevkaNerdFontMono-Regular.ttf"),
-        "Hack":("Hack.tar.xz","HackNerdFontMono-Regular.ttf"),
-        "CascadiaCode":("CascadiaCode.tar.xz","CaskaydiaCoveNerdFontMono-Regular.ttf"),
-        "FiraCode":("FiraCode.tar.xz","FiraCodeNerdFontMono-Regular.ttf"),
-        "Meslo":("Meslo.tar.xz","MesloLGMNerdFontMono-Regular.ttf"),
-        "JetBrainsMono":("JetBrainsMono.tar.xz","JetBrainsMonoNerdFontMono-Regular.ttf"),
-        "RobotoMono":("RobotoMono.tar.xz","RobotoMonoNerdFontMono-Regular.ttf"),
-        "UbuntuMono":("UbuntuMono.tar.xz","UbuntuMonoNerdFontMono-Regular.ttf"),
-        "Mononoki":("Mononoki.tar.xz","MononokiNerdFontMono-Regular.ttf"),
-        "VictorMono":("VictorMono.tar.xz","VictorMonoNerdFontMono-Italic.ttf" if style=="italic" else "VictorMonoNerdFontMono-Regular.ttf"),
-    }
+    # pake link versi mono semua
+    url = f"{NF}{name}.tar.xz"
+    archive = d / f"{name}.tar.xz"
 
-    if name not in files: return
-    asset, font_name = files[name]
-    archive = d / asset
+    # hapus dulu biar download ulang
+    if (T / "font.ttf").exists(): (T / "font.ttf").unlink()
 
-    if not (T / "font.ttf").exists():
-        try:
-            print(f"Downloading {name}...")
-            urllib.request.urlretrieve(NF + asset, archive)
-            with tarfile.open(archive, "r:xz") as tar: tar.extractall(d)
-        except Exception as e:
-            print("! Gagal download:", e); return
+    try:
+        print(f"Downloading {name}...")
+        urllib.request.urlretrieve(url, archive)
+        with tarfile.open(archive, "r:xz") as tar: tar.extractall(d)
+    except Exception as e:
+        print("! Gagal download:", e)
+        return
 
-    # cari font yg mirip namanya, biar ga gagal kalau beda dikit
+    # cari file ttf yg ada kata name + mono
+    found = False
     for f in d.rglob("*.ttf"):
-        if name.lower() in f.name.lower() and "mono" in f.name.lower():
+        n = f.name.lower()
+        if name.lower() in n and "mono" in n:
             shutil.copy2(f, T / "font.ttf")
-            print("✓ Font:", f.name); return
-    print("! Font ttf tidak ditemukan")
+            print("✓ Font:", f.name)
+            found = True
+            break
+
+    if not found:
+        print("! Font ttf tidak ditemukan. Coba pilih tema lain")
 
 def install_fish():
     if not shutil.which("fish") and shutil.which("pkg"):
