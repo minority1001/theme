@@ -1316,7 +1316,7 @@ def theme_menu():
         )
 
         print(
-            "║ B. Kembali                          ║"
+            "║ B. Kembali                           ║"
         )
 
         print(
@@ -1515,7 +1515,7 @@ def main_menu():
         )
 
         print(
-            "║ Q. Keluar                           ║"
+            "║ Q. Keluar                            ║"
         )
 
         print(
