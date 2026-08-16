@@ -877,7 +877,7 @@ def write_keyboard():
 # ELMY0711 CUSTOM TERMUX KEYBOARD
 # ============================================================
 
-extra-keys = [["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls","cd ","clear ","ENTER","ping ","git pull","rm -rf ","exit "]]
+extra-keys = [["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls","cd ","clear ","ENTER","ping ","git pull","rm -rf ","exit"]]
 
 volume-keys = true
 '''
