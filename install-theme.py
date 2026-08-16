@@ -710,7 +710,7 @@ function __elmy0711_prompt --on-event fish_prompt
 
         set_color {c5}
 
-        echo -n "┌─"
+        echo -n "╭─"
 
         set_color {c1}
 
@@ -740,7 +740,7 @@ function __elmy0711_prompt --on-event fish_prompt
 
         set_color {c5}
 
-        echo -n "└───"
+        echo -n "╰──"
 
         set_color {c2}
 
