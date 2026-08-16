@@ -1,20 +1,5 @@
 #!/usr/bin/env python3
 
-# ============================================================
-# TERMUX THEME PACK
-# ELMY0711 EDITION
-# ============================================================
-#
-# Install:
-#
-# curl -fsSL https://raw.githubusercontent.com/minority1001/theme/main/install-theme.py | python3
-#
-# Setelah install:
-#
-# tema
-#
-# ============================================================
-
 import os
 import sys
 import shutil
@@ -23,10 +8,6 @@ import urllib.request
 import tarfile
 from pathlib import Path
 
-
-# ============================================================
-# PATH
-# ============================================================
 
 HOME = Path.home()
 
@@ -68,10 +49,6 @@ NERD_FONT_URL = (
     "releases/latest/download/{}.tar.xz"
 )
 
-
-# ============================================================
-# 10 THEMES
-# ============================================================
 
 THEMES = {
 
@@ -366,11 +343,6 @@ THEMES = {
     },
 }
 
-
-# ============================================================
-# BASIC
-# ============================================================
-
 def clear():
     os.system("clear")
 
@@ -393,10 +365,6 @@ def run(command, check=False):
         print(f"[!] Error: {e}")
         return None
 
-
-# ============================================================
-# DIRECTORIES
-# ============================================================
 
 def ensure_directories():
 
@@ -424,11 +392,6 @@ def ensure_directories():
         parents=True,
         exist_ok=True
     )
-
-
-# ============================================================
-# BACKUP
-# ============================================================
 
 def backup_file(source):
 
@@ -475,10 +438,6 @@ def backup_config():
         "termux.properties"
     )
 
-
-# ============================================================
-# CREATE THEME MANAGER
-# ============================================================
 
 def install_theme_manager():
 
@@ -539,10 +498,6 @@ def install_theme_manager():
         return False
 
 
-# ============================================================
-# COMMAND TEMA
-# ============================================================
-
 def create_theme_command():
 
     ensure_directories()
@@ -578,10 +533,6 @@ exec python3 "$HOME/termux-theme.py" "$@"
             f"[!] Gagal membuat command tema: {e}"
         )
 
-
-# ============================================================
-# FISH CONFIG
-# ============================================================
 
 def configure_fish(colors):
 
@@ -792,10 +743,6 @@ end
         return False
 
 
-# ============================================================
-# INSTALL FISH
-# ============================================================
-
 def install_fish():
 
     if command_exists("fish"):
@@ -886,10 +833,6 @@ def set_fish_default():
         )
 
 
-# ============================================================
-# COLORS
-# ============================================================
-
 def write_colors(colors):
 
     file = (
@@ -925,9 +868,6 @@ def write_colors(colors):
         )
 
 
-# ============================================================
-# CUSTOM KEYBOARD
-# ============================================================
 
 def write_keyboard():
 
@@ -940,7 +880,7 @@ def write_keyboard():
 # ELMY0711 CUSTOM TERMUX KEYBOARD
 # ============================================================
 
-extra-keys = [["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls ","cd ","clear ","ENTER","ping ","git pull","rm -rf ","exit "]]
+extra-keys = [["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls","cd ","clear ","ENTER","ping ","git pull","rm -rf ","exit "]]
 
 volume-keys = true
 '''
@@ -963,9 +903,6 @@ volume-keys = true
         )
 
 
-# ============================================================
-# BASH PATH
-# ============================================================
 
 def configure_bash_path():
 
@@ -1013,9 +950,6 @@ def configure_bash_path():
             pass
 
 
-# ============================================================
-# FONT
-# ============================================================
 
 def find_font(directory):
 
@@ -1167,10 +1101,6 @@ def install_font(font_name):
         return False
 
 
-# ============================================================
-# RELOAD TERMUX
-# ============================================================
-
 def reload_termux():
 
     if command_exists(
@@ -1186,10 +1116,6 @@ def reload_termux():
             "[+] Termux settings direload."
         )
 
-
-# ============================================================
-# APPLY THEME
-# ============================================================
 
 def apply_theme(number):
 
@@ -1423,7 +1349,7 @@ def theme_menu():
         )
 
         print(
-            "║ B. Kembali                            ║"
+            "║ B. Kembali                           ║"
         )
 
         print(
@@ -1622,7 +1548,7 @@ def main_menu():
         )
 
         print(
-            "║ Q. Keluar                             ║"
+            "║ Q. Keluar                            ║"
         )
 
         print(
