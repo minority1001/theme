@@ -112,7 +112,7 @@ function fish_prompt
     echo ""
 
     set_color {c5}
-    echo -n "┌─"
+    echo -n "╭─"
 
     set_color {c1}
     echo -n "💖"
@@ -134,7 +134,7 @@ function fish_prompt
     echo ""
 
     set_color {c5}
-    echo -n "└───"
+    echo -n "╰──╼"
 
     set_color {c2}
     echo -n "╼ "
