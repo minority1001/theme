@@ -231,7 +231,7 @@ def write_keyboard():
         'extra-keys=['
         '["bash ","python3 ","nano ","go run ",'
         '"UP","END","PGUP","node "],'
-        '[{macro:"python3 ~/termux-theme.py\\n",'
+        '[{macro:"python3  ~/termux-theme.py\\n",'
         'display:"tema"},"CTRL","BKSP","LEFT",'
         '"DOWN","RIGHT","git clone ","curl -i "],'
         '["ls ","cd ","clear ","ENTER","ping ",'
