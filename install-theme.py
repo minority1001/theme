@@ -9,7 +9,8 @@ BK=H/".termux-backup"; FD=H/".termux-themes/fonts"
 CFG=F/"config.fish"; PR=F/"ELMY0711-prompt.fish"
 MAIN=H/"termux-theme.py"; PY=P/"bin/python3"; SH=P/"bin/bash"
 
-URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/{}.tar.xz"
+NF="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/"
+VM="https://registry.npmjs.org/victormono/-/victormono-1.5.4.tgz"
 
 THEMES={
 "1":("Tokyo Night","Iosevka","regular","#1a1b26","#a9b1d6",
@@ -32,7 +33,7 @@ THEMES={
 "#689d6a","#a89984","#928374","#fb4934","#b8bb26","#fabd2f",
 "#83a598","#d3869b","#8ec07c","#ebdbb2"]),
 
-"5":("Catppuccin","Iosevka","regular","#1e1e2e","#cdd6f4",
+"5":("Catppuccin","FiraCode","regular","#1e1e2e","#cdd6f4",
 ["#45475a","#f38ba8","#a6e3a1","#f9e2af","#89b4fa","#f5c2e7",
 "#94e2d5","#bac2de","#585b70","#f38ba8","#a6e3a1","#f9e2af",
 "#89b4fa","#f5c2e7","#94e2d5","#cdd6f4"]),
@@ -63,6 +64,18 @@ THEMES={
 "#66d9ef","#ae81ff","#a1efe4","#f9f8f5"])
 }
 
+FONTS={
+"Iosevka":("Iosevka.tar.xz","Iosevka/Iosevka-Regular.ttf"),
+"Hack":("Hack.tar.xz","Hack/Hack-Regular.ttf"),
+"CascadiaCode":("CascadiaCode.tar.xz","CascadiaCode/CaskaydiaCoveNerdFont-Regular.ttf"),
+"FiraCode":("FiraCode.tar.xz","FiraCode/FiraCodeNerdFont-Regular.ttf"),
+"Meslo":("Meslo.tar.xz","Meslo/MesloLGMNerdFont-Regular.ttf"),
+"JetBrainsMono":("JetBrainsMono.tar.xz","JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf"),
+"RobotoMono":("RobotoMono.tar.xz","RobotoMono/RobotoMonoNerdFont-Regular.ttf"),
+"UbuntuMono":("UbuntuMono.tar.xz","UbuntuMono/UbuntuMonoNerdFont-Regular.ttf"),
+"Mononoki":("Mononoki.tar.xz","Mononoki/MononokiNerdFont-Regular.ttf")
+}
+
 def setup():
     for x in (T,F,B,BK,FD):
         x.mkdir(parents=True,exist_ok=True)
@@ -80,11 +93,10 @@ def colors(t):
     (T/"colors.properties").write_text(s)
 
 def prompt(t):
-    p=t[5]
-    c1,c2,c3,c5,c6=p[1],p[2],p[3],p[5],p[6]
+    p=t[5]; c1,c2,c3,c5,c6=p[1],p[2],p[3],p[5],p[6]
     s=f'''function fish_prompt
     set_color {c6}
-    echo -n (date "+%d %b %H:%M")
+    echo -n (date "+%b %d %H:%M")
     echo ""
 
     set_color {c5}
@@ -102,6 +114,7 @@ def prompt(t):
     set_color {c5}
     echo -n "]"
     echo ""
+
     set_color {c5}
     echo -n "╰─"
     set_color {c2}
@@ -131,68 +144,49 @@ def tema_cmd():
     x.write_text(f'#!{SH}\nexec "{PY}" "$HOME/termux-theme.py" "$@"\n')
     x.chmod(0o755)
 
-def font(name,style):
-    d=FD/name
-    d.mkdir(parents=True,exist_ok=True)
+def download_font(name,style):
+    d=FD/name; d.mkdir(parents=True,exist_ok=True)
 
-    def find():
-        fs=list(d.rglob("*.ttf"))
+    if name=="VictorMono":
+        a=d/"victormono.tgz"
+        out=d/"VictorMono-Italic.ttf"
+        if not out.exists():
+            try:
+                urllib.request.urlretrieve(VM,a)
+                with tarfile.open(a,"r:gz") as z:
+                    z.extractall(d)
+                files=list(d.rglob("VictorMono-Italic.ttf"))
+                if files: shutil.copy2(files[0],out)
+                a.unlink(missing_ok=True)
+            except Exception as e:
+                print("! Victor Mono:",e)
+                return
+        if out.exists():
+            shutil.copy2(out,T/"font.ttf")
+            print("✓ Font: VictorMono-Italic.ttf")
+        return
 
-        if style=="italic":
-            for f in fs:
-                n=f.name.lower()
-                if "italic" in n or "oblique" in n:
-                    return f
-            return None
+    asset,path=FONTS[name]
+    out=d/Path(path).name
 
-        for f in fs:
-            n=f.name.lower()
-            bad=(
-                "italic","oblique","bold",
-                "light","thin","medium"
-            )
-            if not any(x in n for x in bad):
-                return f
-
-        return fs[0] if fs else None
-
-    f=find()
-
-    if not f:
-        print(f"Download {name}...")
-
-        a=d/f"{name}.tar.xz"
-
+    if not out.exists():
+        a=d/asset
         try:
-            urllib.request.urlretrieve(
-                URL.format(name),a
-            )
-
-            with tarfile.open(
-                a,"r:xz"
-            ) as z:
+            urllib.request.urlretrieve(NF+asset,a)
+            with tarfile.open(a,"r:xz") as z:
                 z.extractall(d)
-
             a.unlink(missing_ok=True)
-
         except Exception as e:
-            print("! Download gagal:",e)
+            print("! Font:",name,e)
             return
 
-        f=find()
-
-    if f:
-        shutil.copy2(
-            f,T/"font.ttf"
-        )
-        print("✓ Font:",f.name)
+    if out.exists():
+        shutil.copy2(out,T/"font.ttf")
+        print("✓ Font:",out.name)
     else:
-        print(
-            f"! {name} {style} "
-            "tidak tersedia"
-        )
+        print("! File font tidak ditemukan:",path)
 
-def fish():
+def install_fish():
     if not shutil.which("fish") and shutil.which("pkg"):
         subprocess.run(["pkg","install","fish","-y"],check=False)
 
@@ -203,30 +197,19 @@ def reload():
 def apply(n):
     t=THEMES[n]
     print(f"\nTema : {t[0]}\nFont : {t[1]}\nStyle: {t[2]}")
-    backup()
-    colors(t)
-    prompt(t)
-    hook()
-    keyboard()
-    tema_cmd()
-    font(t[1],t[2])
-    reload()
-    print("\n✓ Tema aktif")
+    backup(); colors(t); prompt(t); hook()
+    keyboard(); tema_cmd(); download_font(t[1],t[2]); reload()
+    print("\n✓ Tema aktif\n✓ Prompt aktif\n✓ Keyboard aktif\n✓ config.fish aman")
 
 def restore():
     for n in ("config.fish","colors.properties","font.ttf","termux.properties"):
-        a=BK/n
-        b=CFG if n=="config.fish" else T/n
+        a=BK/n; b=CFG if n=="config.fish" else T/n
         if a.exists(): shutil.copy2(a,b)
-    reload()
-    print("✓ Backup dipulihkan")
+    reload(); print("✓ Backup dipulihkan")
 
 def install():
-    setup()
-    backup()
-    fish()
-    tema_cmd()
-    apply("1")
+    setup(); backup(); install_fish()
+    tema_cmd(); apply("1")
     print("\n✓ Instalasi selesai")
     print("  exec fish")
     print("  tema + ENTER")
@@ -245,8 +228,7 @@ def menu():
             apply(x); input("\nENTER...")
         elif x=="r":
             restore(); input("\nENTER...")
-        elif x=="q":
-            break
+        elif x=="q": break
 
 def main():
     setup()
