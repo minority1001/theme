@@ -144,47 +144,144 @@ def tema_cmd():
     x.write_text(f'#!{SH}\nexec "{PY}" "$HOME/termux-theme.py" "$@"\n')
     x.chmod(0o755)
 
-def download_font(name,style):
-    d=FD/name; d.mkdir(parents=True,exist_ok=True)
+def download_font(name, style):
+    d = FD / name
+    d.mkdir(parents=True, exist_ok=True)
 
-    if name=="VictorMono":
-        a=d/"victormono.tgz"
-        out=d/"VictorMono-Italic.ttf"
-        if not out.exists():
-            try:
-                urllib.request.urlretrieve(VM,a)
-                with tarfile.open(a,"r:gz") as z:
-                    z.extractall(d)
-                files=list(d.rglob("VictorMono-Italic.ttf"))
-                if files: shutil.copy2(files[0],out)
-                a.unlink(missing_ok=True)
-            except Exception as e:
-                print("! Victor Mono:",e)
-                return
-        if out.exists():
-            shutil.copy2(out,T/"font.ttf")
-            print("✓ Font: VictorMono-Italic.ttf")
-        return
+    files = {
+        "Iosevka": (
+            "Iosevka.tar.xz",
+            "Iosevka/Iosevka-Regular.ttf"
+        ),
+        "Hack": (
+            "Hack.tar.xz",
+            "Hack/Hack-Regular.ttf"
+        ),
+        "CascadiaCode": (
+            "CascadiaCode.tar.xz",
+            "CascadiaCode/CaskaydiaCoveNerdFont-Regular.ttf"
+        ),
+        "FiraCode": (
+            "FiraCode.tar.xz",
+            "FiraCode/FiraCodeNerdFont-Regular.ttf"
+        ),
+        "Meslo": (
+            "Meslo.tar.xz",
+            "Meslo/MesloLGMNerdFont-Regular.ttf"
+        ),
+        "JetBrainsMono": (
+            "JetBrainsMono.tar.xz",
+            "JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf"
+        ),
+        "RobotoMono": (
+            "RobotoMono.tar.xz",
+            "RobotoMono/RobotoMonoNerdFont-Regular.ttf"
+        ),
+        "UbuntuMono": (
+            "UbuntuMono.tar.xz",
+            "UbuntuMono/UbuntuMonoNerdFont-Regular.ttf"
+        ),
+        "Mononoki": (
+            "Mononoki.tar.xz",
+            "Mononoki/MononokiNerdFont-Regular.ttf"
+        ),
+    }
 
-    asset,path=FONTS[name]
-    out=d/Path(path).name
+    if name == "VictorMono" and style == "italic":
+        url = (
+            "https://github.com/ryanoasis/"
+            "nerd-fonts/releases/latest/download/"
+            "VictorMono.tar.xz"
+        )
 
-    if not out.exists():
-        a=d/asset
+        archive = d / "VictorMono.tar.xz"
+
         try:
-            urllib.request.urlretrieve(NF+asset,a)
-            with tarfile.open(a,"r:xz") as z:
-                z.extractall(d)
-            a.unlink(missing_ok=True)
+            print("Download Victor Mono...")
+            urllib.request.urlretrieve(
+                url, archive
+            )
+
+            with tarfile.open(
+                archive, "r:xz"
+            ) as tar:
+                tar.extractall(d)
+
         except Exception as e:
-            print("! Font:",name,e)
+            print("! Download gagal:", e)
             return
 
-    if out.exists():
-        shutil.copy2(out,T/"font.ttf")
-        print("✓ Font:",out.name)
+        target = None
+
+        for f in d.rglob("*.ttf"):
+            if f.name.lower() in (
+                "victormononerdfont-italic.ttf",
+                "victormononerdfontmono-italic.ttf"
+            ):
+                target = f
+                break
+
+        if target is None:
+            for f in d.rglob("*.ttf"):
+                n = f.name.lower()
+                if (
+                    "victormono" in n
+                    and "italic" in n
+                    and "propo" not in n
+                ):
+                    target = f
+                    break
+
+        if target:
+            shutil.copy2(
+                target,
+                T / "font.ttf"
+            )
+            print(
+                "✓ Font:",
+                target.name
+            )
+        else:
+            print(
+                "! VictorMono italic "
+                "tidak ditemukan"
+            )
+
+        return
+
+    asset, path = files[name]
+    archive = d / asset
+    target = d / Path(path).name
+
+    if not target.exists():
+        try:
+            print("Download", name + "...")
+
+            urllib.request.urlretrieve(
+                NF + asset,
+                archive
+            )
+
+            with tarfile.open(
+                archive, "r:xz"
+            ) as tar:
+                tar.extractall(d)
+
+        except Exception as e:
+            print("! Font gagal:", e)
+            return
+
+    if target.exists():
+        shutil.copy2(
+            target,
+            T / "font.ttf"
+        )
+        print("✓ Font:", target.name)
     else:
-        print("! File font tidak ditemukan:",path)
+        print(
+            "! File font tidak ditemukan:",
+            path
+        )
 
 def install_fish():
     if not shutil.which("fish") and shutil.which("pkg"):
