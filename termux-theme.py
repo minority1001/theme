@@ -84,27 +84,29 @@ def keyboard():
     s='''extra-keys=[["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls ","cd ","clear ","ENTER","ping ","git pull ","rm -rf ",{macro:"CTRL d",display:"exit"}]]'''
     (T/"termux.properties").write_text(s)
 
-def tema_cmd():
-    x=B/"tema"
-    x.write_text(f'#!{SH}\nexec "{PY}" "$HOME/theme/termux-theme.py" "$@"\n')
-    x.chmod(0o755)
-
 def download_font(name, style):
     d = FD / name
     d.mkdir(parents=True, exist_ok=True)
     archive = d / f"{name}.tar.xz"
-    
-    # CEK: kalo font udah ada di ~/.termux/font.ttf skip download
-    if (T / "font.ttf").exists():
-        print("✓ Font sudah ada, skip download")
+
+    # CEK: kalo font ini udah pernah didownload, langsung pake aja
+    font_target = list(d.rglob(f"*{name}*Mono*{style}*.ttf"))
+    if not font_target:
+        font_target = list(d.rglob(f"*{name}*Mono*.ttf"))
+
+    if font_target and (T / "font.ttf").exists():
+        shutil.copy2(font_target[0], T / "font.ttf")
+        print("✓ Font:", font_target[0].name, "- pake cache")
         return
-    
+
+    # Kalo belum ada, baru download
     url = f"{NF}{name}.tar.xz"
     print(f"Downloading {name}...")
     subprocess.run(["curl","-L",url,"-o",str(archive)], check=False)
     try:
         with tarfile.open(archive, "r:xz") as tar: tar.extractall(d)
     except: pass
+
     target_style = "italic" if style == "italic" else "regular"
     for f in d.rglob("*.ttf"):
         n = f.name.lower()
