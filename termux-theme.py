@@ -34,13 +34,13 @@ def backup():
             shutil.copy2(x,BK/x.name)
 
 def colors(t):
-    _,_,_,bg,fg,p=t
+    _,_,bg,fg,p=t
     s=f"background={bg}\nforeground={fg}\ncursor={fg}\n"
     s+="".join(f"color{i}={c}\n" for i,c in enumerate(p))
     (T/"colors.properties").write_text(s)
 
 def prompt(t):
-    _,_,_,_,_,p=t
+    _,_,p=t
     c1,c2,c3,c5,c6=p[1],p[2],p[3],p[5],p[6]
     s=f'''function fish_prompt
     set_color {c6}
@@ -81,7 +81,9 @@ def hook():
         CFG.write_text(s+"\n# ELMY0711\n"+h+"\n")
 
 def keyboard():
-    s='''extra-keys=[["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls ","cd ","clear ","ENTER","ping ","git pull ","rm -rf ",{macro:"CTRL d",display:"exit"}]]'''
+    s='extra-keys=[["bash ","python3 ","nano ","go run ","UP","END","PGUP","node "],["tema ","CTRL","BKSP","LEFT","DOWN","RIGHT","git clone ","curl -i "],["ls ","cd ","clear ","ENTER","ping ","git pull ","rm -rf ",{macro:"CTRL d",display:"exit"}]]\n'
+    s+='font=~/.termux/font.ttf\n'
+    s+='use-full-screen=true'
     (T/"termux.properties").write_text(s)
 
 def tema_cmd():
@@ -93,33 +95,37 @@ def download_font(name, style):
     d = FD / name
     d.mkdir(parents=True, exist_ok=True)
     archive = d / f"{name}.tar.xz"
-
-    # CEK CACHE: kalo font ini udah ada, pake langsung
-    font_target = list(d.rglob(f"*{name}*Mono*{style}*.ttf"))
-    if not font_target:
-        font_target = list(d.rglob(f"*{name}*Mono*.ttf"))
-
-    if font_target and (T / "font.ttf").exists():
-        shutil.copy2(font_target[0], T / "font.ttf")
-        print("✓ Font:", font_target[0].name, "- pake cache")
-        return
-
-    # DOWNLOAD BARU
     url = f"{NF}{name}.tar.xz"
+
+    # 1. Coba pake cache dulu
+    all_ttf = list(d.rglob("*.ttf"))
+    if all_ttf:
+        for f in all_ttf:
+            n=f.name.lower()
+            if name.lower().replace("code"," code") in n and "mono" in n:
+                shutil.copy2(f, T / "font.ttf")
+                print("✓ Font:", f.name, "- pake cache")
+                return
+
+    # 2. Kalo belum ada download
     print(f"Downloading {name}...")
     subprocess.run(["curl","-L",url,"-o",str(archive)], check=False)
     try:
         with tarfile.open(archive, "r:xz") as tar: tar.extractall(d)
     except: pass
 
+    # 3. Cari file ttf nya. Kuncinya: pake "in" bukan "=="
     target_style = "italic" if style == "italic" else "regular"
+    name_search = name.lower().replace("code"," code") # CascadiaCode -> Cascadia Code
+
     for f in d.rglob("*.ttf"):
         n = f.name.lower()
-        if name.lower() in n and "mono" in n and target_style in n:
+        if name_search in n and "mono" in n and target_style in n:
             shutil.copy2(f, T / "font.ttf")
             print("✓ Font:", f.name); return
-    for f in d.rglob("*.ttf"):
-        if name.lower() in f.name.lower() and "mono" in f.name.lower():
+
+    for f in d.rglob("*.ttf"): # fallback paling akhir
+        if "mono" in f.name.lower():
             shutil.copy2(f, T / "font.ttf")
             print("✓ Font:", f.name); return
     print("! Font gagal")
@@ -144,12 +150,12 @@ def restore():
 def menu():
     while True:
         os.system("clear")
-        print("╭── ELMY0711 THEME v3.1 ──╮")
+        print("╭── ELMY0711 THEME v3.2 FIX ──╮")
         for n,t in THEMES.items():
             print(f"│ {n:>2}. {t[0]:<12} {t[1]:<12} │")
         print("│ R. restore │")
         print("│ Q. keluar │")
-        print("╰─────────────────────────╯")
+        print("╰─────────────────────────────╯")
         try:
             x=input("Pilih: ").strip().lower()
         except EOFError:
