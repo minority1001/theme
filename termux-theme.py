@@ -7,7 +7,7 @@ P=Path(os.getenv("PREFIX","/data/com.termux/files/usr"))
 T=H/".termux"; F=H/".config/fish"; B=H/"bin"
 BK=H/".termux-backup"; FD=H/".termux-themes/fonts"
 CFG=F/"config.fish"; PR=F/"ELMY0711-prompt.fish"
-MAIN=H/"termux-theme.py"; PY=P/"bin/python3"; SH=P/"bin/bash"
+MAIN=H/"theme/termux-theme.py"; PY=P/"bin/python3"; SH=P/"bin/bash"
 
 NF="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/"
 
@@ -25,7 +25,7 @@ THEMES={
 }
 
 def setup():
-    for x in (T,F,B,BK,FD): x.mkdir(parents=True,exist_ok=True)
+    for x in (T,F,BK,FD): x.mkdir(parents=True,exist_ok=True)
 
 def backup():
     BK.mkdir(exist_ok=True)
@@ -34,10 +34,11 @@ def backup():
             shutil.copy2(x,BK/x.name)
 
 def colors(t):
-    _,_,_,bg,fg,p=t # <--- tambahin 1 koma dan _ lagi
+    _,_,bg,fg,p=t # FIX: skip 3
     s=f"background={bg}\nforeground={fg}\ncursor={fg}\n"
     s+="".join(f"color{i}={c}\n" for i,c in enumerate(p))
     (T/"colors.properties").write_text(s)
+
 def prompt(t):
     p=t[5]; c1,c2,c3,c5,c6=p[1],p[2],p[3],p[5],p[6]
     s=f'''function fish_prompt
@@ -84,7 +85,7 @@ def keyboard():
 
 def tema_cmd():
     x=B/"tema"
-    x.write_text(f'#!{SH}\nexec "{PY}" "$HOME/termux-theme.py" "$@"\n')
+    x.write_text(f'#!{SH}\nexec "{PY}" "$HOME/theme/termux-theme.py" "$@"\n')
     x.chmod(0o755)
 
 def download_font(name, style):
@@ -141,12 +142,12 @@ def install():
 def menu():
     while True:
         os.system("clear")
-        print("╭── ELMY0711 THEME ──╮")
+        print("╭── ELMY0711 THEME v3 FIX ──╮")
         for n,t in THEMES.items():
-            print(f"│ {n:>2}. {t[0]:<15} │")
+            print(f"│ {n:>2}. {t[0]:<12} {t[1]:<12} │")
         print("│ R. restore │")
         print("│ Q. keluar │")
-        print("╰────────────────────╯")
+        print("╰───────────────────────────╯")
         x=input("Pilih: ").strip().lower()
         if x in THEMES:
             apply(x); input("\nENTER...")
