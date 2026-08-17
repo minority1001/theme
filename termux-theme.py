@@ -40,7 +40,7 @@ def colors(t):
     (T/"colors.properties").write_text(s)
 
 def prompt(t):
-    _,_,p=t
+    _,_,_,_,_,p=t
     c1,c2,c3,c5,c6=p[1],p[2],p[3],p[5],p[6]
     s=f'''function fish_prompt
     set_color {c6}
@@ -96,36 +96,29 @@ def download_font(name, style):
     d.mkdir(parents=True, exist_ok=True)
     archive = d / f"{name}.tar.xz"
     url = f"{NF}{name}.tar.xz"
+    name_search = name.lower().replace("code"," code")
 
-    # 1. Coba pake cache dulu
+    # 1. CEK CACHE DULU BIAR GA BOROS KUOTA
     all_ttf = list(d.rglob("*.ttf"))
     if all_ttf:
         for f in all_ttf:
             n=f.name.lower()
-            if name.lower().replace("code"," code") in n and "mono" in n:
+            if name_search in n and "mono" in n:
                 shutil.copy2(f, T / "font.ttf")
-                print("✓ Font:", f.name, "- pake cache")
+                print("✓ Font:", f.name, "- pake cache, hemat kuota")
                 return
 
-    # 2. Kalo belum ada download
+    # 2. BARU DOWNLOAD KALO BELUM ADA
     print(f"Downloading {name}...")
     subprocess.run(["curl","-L",url,"-o",str(archive)], check=False)
     try:
         with tarfile.open(archive, "r:xz") as tar: tar.extractall(d)
     except: pass
-
-    # 3. Cari file ttf nya. Kuncinya: pake "in" bukan "=="
-    target_style = "italic" if style == "italic" else "regular"
-    name_search = name.lower().replace("code"," code") # CascadiaCode -> Cascadia Code
+    os.remove(archive) # hapus zip biar ga numpuk
 
     for f in d.rglob("*.ttf"):
         n = f.name.lower()
-        if name_search in n and "mono" in n and target_style in n:
-            shutil.copy2(f, T / "font.ttf")
-            print("✓ Font:", f.name); return
-
-    for f in d.rglob("*.ttf"): # fallback paling akhir
-        if "mono" in f.name.lower():
+        if name_search in n and "mono" in n:
             shutil.copy2(f, T / "font.ttf")
             print("✓ Font:", f.name); return
     print("! Font gagal")
@@ -150,12 +143,12 @@ def restore():
 def menu():
     while True:
         os.system("clear")
-        print("╭── ELMY0711 THEME v3.2 FIX ──╮")
+        print("╭── ELMY0711 THEME v3.3 FINAL ──╮")
         for n,t in THEMES.items():
             print(f"│ {n:>2}. {t[0]:<12} {t[1]:<12} │")
         print("│ R. restore │")
         print("│ Q. keluar │")
-        print("╰─────────────────────────────╯")
+        print("╰───────────────────────────────╯")
         try:
             x=input("Pilih: ").strip().lower()
         except EOFError:
