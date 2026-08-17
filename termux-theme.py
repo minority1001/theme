@@ -138,16 +138,12 @@ def menu():
         print("│ R. restore │")
         print("│ Q. keluar │")
         print("╰───────────────────────────╯")
-        x=input("Pilih: ").strip().lower()
+        try:
+            x=input("Pilih: ").strip().lower()
+        except EOFError:
+            print("Keluar..."); break
         if x in THEMES:
             apply(x); input("\nENTER...")
         elif x=="r":
             restore(); input("\nENTER...")
         elif x=="q": break
-
-def main():
-    setup()
-    menu()
-
-if __name__=="__main__":
-    main()
