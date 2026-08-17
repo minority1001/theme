@@ -18,7 +18,7 @@ THEMES={
 "4":("Gruvbox","CascadiaCode","regular","#282828","#ebdbb2",["#282828","#cc241d","#98971a","#d79921","#458588","#b16286","#689d6a","#a89984","#928374","#fb4934","#b8bb26","#fabd2f","#83a598","#d3869b","#8ec07c","#ebdbb2"]),
 "5":("Catppuccin","FiraCode","regular","#1e1e2e","#cdd6f4",["#45475a","#f38ba8","#a6e3a1","#f9e2af","#89b4fa","#f5c2e7","#94e2d5","#bac2de","#585b70","#f38ba8","#a6e3a1","#f9e2af","#89b4fa","#f5c2e7","#94e2d5","#cdd6f4"]),
 "6":("One Dark","Meslo","regular","#282c34","#abb2bf",["#282c34","#e06c75","#98c379","#e5c07b","#61afef","#c678dd","#56b6c2","#abb2bf","#5c6370","#e06c75","#98c379","#e5c07b","#61afef","#c678dd","#56b6c2","#ffffff"]),
-"7":("Cyberpunk","JetBrainsMono","regular","#090014","#00ffff",["#120024","#ff0055","#00ff9c","#ffe600","#00aaff","#ff00ff","#00ffff","#d8d8","#3b0057","#ff3366","#33ffbb","#ffff33","#33bbff","#ff33ff","#33ffff","#ffffff"]),
+"7":("Cyberpunk","JetBrainsMono","regular","#090014","#00ffff",["#120024","#ff0055","#00ff9c","#ffe600","#00aaff","#ff00ff","#00ffff","#d8d8d8","#3b0057","#ff3366","#33ffbb","#ffff33","#33bbff","#ff33ff","#33ffff","#ffffff"]),
 "8":("Solarized","RobotoMono","regular","#002b36","#839496",["#073642","#dc322f","#859900","#b58900","#268bd2","#d33682","#2aa198","#eee8d5","#002b36","#cb4b16","#586e75","#657b83","#839496","#6c71c4","#93a1a1","#fdf6e3"]),
 "9":("Everforest","UbuntuMono","regular","#2d353b","#d3c6aa",["#343f44","#e67e80","#a7c080","#dbbc7f","#7fbbb3","#d699b6","#83c092","#d3c6aa","#475258","#e67e80","#a7c080","#dbbc7f","#7fbbb3","#d699b6","#83c092","#e9e8d2"]),
 "10":("Monokai","Mononoki","regular","#272822","#f8f8f2",["#272822","#f92672","#a6e22e","#f4bf75","#66d9ef","#ae81ff","#a1efe4","#f8f8f2","#75715e","#f92672","#a6e22e","#f4bf75","#66d9ef","#ae81ff","#a1efe4","#f9f8f5"])
@@ -38,9 +38,9 @@ def colors(t):
     s=f"background={bg}\nforeground={fg}\ncursor={fg}\n"
     s+="".join(f"color{i}={c}\n" for i,c in enumerate(p))
     (T/"colors.properties").write_text(s)
-    
+
 def prompt(t):
-    _,_,_,_,_,p=t # FIX: skip 3 juga
+    _,_,_,_,_,p=t
     c1,c2,c3,c5,c6=p[1],p[2],p[3],p[5],p[6]
     s=f'''function fish_prompt
     set_color {c6}
@@ -147,3 +147,16 @@ def menu():
         elif x=="r":
             restore(); input("\nENTER...")
         elif x=="q": break
+
+def main():
+    setup()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--install":
+            apply("1")
+        elif sys.argv[1] in THEMES:
+            apply(sys.argv[1])
+    else:
+        menu()
+
+if __name__=="__main__":
+    main()
