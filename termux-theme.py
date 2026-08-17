@@ -92,9 +92,14 @@ def tema_cmd():
 def download_font(name, style):
     d = FD / name
     d.mkdir(parents=True, exist_ok=True)
-    url = f"{NF}{name}.tar.xz"
     archive = d / f"{name}.tar.xz"
-    if (T / "font.ttf").exists(): (T / "font.ttf").unlink()
+    
+    # CEK: kalo font udah ada di ~/.termux/font.ttf skip download
+    if (T / "font.ttf").exists():
+        print("✓ Font sudah ada, skip download")
+        return
+    
+    url = f"{NF}{name}.tar.xz"
     print(f"Downloading {name}...")
     subprocess.run(["curl","-L",url,"-o",str(archive)], check=False)
     try:
